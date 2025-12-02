@@ -249,12 +249,12 @@ Once the backend is running, visit:
 
 This project was developed by a team of 6 members as part of the GAMUDA AI Academy Cohort 4:
 
-- **Yeow** - Team Member
-- **Angeline** - Team Member
-- **Sivan** - Team Member
+- **Yeow** - Team Leader (https://github.com/ywy929)
+- **Angeline** - Team Member (https://github.com/AngelineKong)
+- **Sivan** - Team Member (https://github.com/Sivaneishan)
 - **Fatin** - Team Member
-- **Faris** - Team Member
-- **Kuran** - Team Member
+- **Faris** - Team Member (https://github.com/farishelmi17)
+- **Kuran** - Team Member (Me)
 
 ## Acknowledgments
 
@@ -276,4 +276,4 @@ This project is part of an academic capstone and is intended for educational pur
 
 ---
 
-Built with dedication by Team RayyAI
+Built with dedication by Team AI-Vengers (Team 1)
