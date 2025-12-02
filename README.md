@@ -252,9 +252,9 @@ This project was developed by a team of 6 members as part of the GAMUDA AI Acade
 - **Yeow** - Team Leader (https://github.com/ywy929)
 - **Angeline** - Team Member (https://github.com/AngelineKong)
 - **Sivan** - Team Member (https://github.com/Sivaneishan)
-- **Fatin** - Team Member
+- **Fatin** - Team Member (*)
 - **Faris** - Team Member (https://github.com/farishelmi17)
-- **Kuran** - Team Member (Me)
+- **Syamil** - Team Member (Me)
 
 ## Acknowledgments
 
