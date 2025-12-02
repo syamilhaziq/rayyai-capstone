@@ -254,7 +254,7 @@ This project was developed by a team of 6 members as part of the GAMUDA AI Acade
 - **Sivan** - Team Member (https://github.com/Sivaneishan)
 - **Fatin** - Team Member (*)
 - **Faris** - Team Member (https://github.com/farishelmi17)
-- **Syamil** - Team Member (Me)
+- **Syamil** - Team Member (https://github.com/syamilhaziq)
 
 ## Acknowledgments
 
