@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Login - RayyAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .token-display {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #495057;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .info-box {
+            margin-top: 24px;
+            padding: 16px;
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #004085;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Quick Login</h1>
+        <p class="subtitle">Get your JWT token and inject it into the frontend</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="your@email.com"
+                    value="mock@example.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                >
+            </div>
+
+            <button type="submit" id="loginBtn">
+                Login & Inject Token
+            </button>
+        </form>
+
+        <div id="message" class="message"></div>
+
+        <div class="info-box">
+            <strong>📝 How it works:</strong>
+            1. Enter your credentials<br>
+            2. Click "Login & Inject Token"<br>
+            3. Token will be stored in localStorage<br>
+            4. Go back to your app and refresh
+        </div>
+    </div>
+
+    <script>
+        // Note: Hardcoded here since this is a standalone HTML file
+        // Main app uses: import { API_BASE_URL } from './services/api'
+        const API_BASE_URL = 'https://rayyai-api-service-838873798405.us-central1.run.app/';
+
+        const form = document.getElementById('loginForm');
+        const loginBtn = document.getElementById('loginBtn');
+        const messageEl = document.getElementById('message');
+
+        function showMessage(text, type = 'success') {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type} show`;
+            setTimeout(() => {
+                messageEl.classList.remove('show');
+            }, 5000);
+        }
+
+        async function login(email, password) {
+            try {
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = 'Logging in<span class="spinner"></span>';
+
+                const response = await fetch(`${API_BASE_URL}/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Login failed');
+                }
+
+                if (data.access_token) {
+                    // Store token in localStorage
+                    localStorage.setItem('auth_token', data.access_token);
+
+                    // Show success message
+                    showMessage('✅ Success! Token stored in localStorage. Go back to your app and refresh the page.', 'success');
+
+                    // Add token display
+                    if (!document.getElementById('tokenDisplay')) {
+                        const tokenDiv = document.createElement('div');
+                        tokenDiv.id = 'tokenDisplay';
+                        tokenDiv.className = 'token-display';
+                        tokenDiv.textContent = `Token: ${data.access_token}`;
+                        messageEl.parentElement.insertBefore(tokenDiv, messageEl.nextSibling);
+                    }
+
+                    // Clear form
+                    document.getElementById('password').value = '';
+                } else {
+                    throw new Error('No token received');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login & Inject Token';
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            await login(email, password);
+        });
+
+        // Check if token already exists
+        window.addEventListener('load', () => {
+            const existingToken = localStorage.getItem('auth_token');
+            if (existingToken) {
+                showMessage('ℹ️ A token already exists in localStorage. Login again to replace it.', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+import { useEffect, useRef, useState, useMemo } from "react";
+import { Plus, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, CheckCircle2, Target } from "lucide-react";
+
+export default function FinancialGoalsOverviewChart({ activeGoals, totalTarget, totalSaved, formatCurrency, onAddClick }) {
+    const savedPercentage = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
+    const actualSavedPercentage = totalSaved > totalTarget ? 100 : savedPercentage;
+    const svgRef = useRef(null);
+    const [waveOffset, setWaveOffset] = useState(0);
+    const prevTargetRef = useRef(totalTarget);
+    const prevSavedRef = useRef(totalSaved);
+
+    // Calculate trends based on previous values
+    const targetTrend = useMemo(() => {
+        const prev = prevTargetRef.current;
+        prevTargetRef.current = totalTarget;
+        if (prev === 0 || prev === totalTarget) return 'neutral';
+        return totalTarget > prev ? 'up' : 'down';
+    }, [totalTarget]);
+
+    const savedTrend = useMemo(() => {
+        const prev = prevSavedRef.current;
+        prevSavedRef.current = totalSaved;
+        if (prev === 0 && totalSaved === 0) return 'neutral';
+        if (prev === totalSaved) return 'neutral';
+        return totalSaved > prev ? 'up' : 'down';
+    }, [totalSaved]);
+
+    // Animate wave
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setWaveOffset(prev => (prev + 2) % 100);
+        }, 50);
+        return () => clearInterval(interval);
+    }, []);
+
+    const radius = 180;
+    // Use actual saved percentage based on total target
+    // The liquid fill represents how much has been saved
+    // User wants: if saved is 37%, the liquid should visually be 37% full (quarter to a bit more)
+    // So we use the actual saved percentage directly for visual fill
+    const savedFill = Math.min(actualSavedPercentage, 100); // Cap at 100%
+    const baseFill = 15; // Minimum starting point at 15%
+    // Ensure visual fill is at least 15% but matches the actual saved percentage
+    const fillPercentage = Math.max(baseFill, savedFill); // At least 15%, use actual percentage for visual
+    const fillHeight = (fillPercentage / 100) * (radius * 2);
+    // Calculate display percentage: show the actual saved percentage (0-100%)
+    const displayPercentage = Math.round(actualSavedPercentage);
+    // Calculate the Y position of the liquid surface (from bottom)
+    // In SVG: y=0 is top, y=360 is bottom
+    // Liquid fills from bottom up, so liquidTopY is measured from top
+    const liquidTopY = radius * 2 - fillHeight;
+
+    // Generate bubbles within the liquid area
+    // Adjusted for the new center position (187, 187 instead of 180, 180)
+    const bubbles = useMemo(() => {
+        const bubbleArray = [];
+        const bubbleCount = 15;
+        const centerX = 187; // New center X coordinate
+        const centerY = 187; // New center Y coordinate
+        const adjustedLiquidTopY = centerY - radius + (radius * 2 - fillHeight);
+        
+        for (let i = 0; i < bubbleCount; i++) {
+            // Random position within the filled area
+            const angle = Math.random() * Math.PI * 2;
+            const maxDistance = Math.min(fillHeight * 0.4, radius * 0.8);
+            const distance = Math.random() * maxDistance;
+            const x = centerX + Math.cos(angle) * distance;
+            // Y position should be in the liquid area (from adjustedLiquidTopY to bottom)
+            const y = adjustedLiquidTopY + Math.random() * fillHeight;
+            const size = 2 + Math.random() * 3;
+            bubbleArray.push({ x, y, size });
+        }
+        return bubbleArray;
+    }, [fillHeight, liquidTopY, fillPercentage]);
+
+    // Create wavy path for liquid surface
+    // Adjusted for the new center position (187, 187 instead of 180, 180)
+    const createWavePath = () => {
+        const centerX = 187; // New center X coordinate
+        const centerY = 187; // New center Y coordinate
+        const width = radius * 2;
+        const segments = 30;
+        const amplitude = 6;
+        // Adjust liquidTopY for new center position
+        const adjustedLiquidTopY = centerY - radius + (radius * 2 - fillHeight);
+        let path = `M ${centerX - radius} ${centerY + radius}`; // Start from bottom left
+        
+        // Draw bottom edge
+        path += ` L ${centerX + radius} ${centerY + radius}`;
+        
+        // Draw wavy top edge from right to left
+        for (let i = segments; i >= 0; i--) {
+            const x = centerX - radius + (i / segments) * width;
+            const y = adjustedLiquidTopY + Math.sin((i / segments) * Math.PI * 4 + (waveOffset / 100) * Math.PI * 2) * amplitude;
+            path += ` L ${x} ${y}`;
+        }
+        
+        path += ` Z`; // Close the path
+        return path;
+    };
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8">
+            {/* Financial Goals Overview Section - Left Side */}
+            <div className="bg-white rounded-xl p-4 sm:p-6 md:p-8 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                {/* Green gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 opacity-50"></div>
+                
+                <div className="relative z-10 flex flex-col lg:flex-row items-center lg:items-start gap-4 md:gap-6 lg:gap-8">
+                    {/* Left side - Text and Button */}
+                    <div className="flex-1 flex flex-col justify-center w-full lg:w-auto">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#04362c] mb-4 md:mb-6 leading-tight text-center lg:text-left">
+                            <span className="block">Add Financial</span>
+                            <span className="block">Goals</span>
+                        </h2>
+                        {onAddClick && (
+                            <button
+                                onClick={onAddClick}
+                                className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 bg-[#04362c] text-white text-base sm:text-lg rounded-lg hover:bg-[#04362c]/90 transition-colors shadow-lg hover:shadow-xl font-medium w-full sm:w-fit mb-4 md:mb-6"
+                            >
+                                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                                Add New Goals
+                            </button>
+                        )}
+                        
+                        {/* Three Column Stats */}
+                        <div className="flex items-start gap-2 sm:gap-4 mt-8 md:mt-12 lg:mt-16 w-full">
+                            {/* Active Goals */}
+                            <div className="flex-1">
+                                <div className="text-sm sm:text-base md:text-lg text-[#04362c] mb-1 sm:mb-2">Active Goals</div>
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#04362c] break-words">
+                                    {activeGoals}
+                                </div>
+                            </div>
+                            
+                            {/* Divider */}
+                            <div className="w-px h-12 sm:h-16 md:h-20 bg-[#04362c]"></div>
+                            
+                            {/* Total Target */}
+                            <div className="flex-1">
+                                <div className="text-sm sm:text-base md:text-lg text-[#04362c] mb-1 sm:mb-2">Total Target</div>
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#04362c] break-words">
+                                    {formatCurrency(totalTarget)}
+                                </div>
+                            </div>
+                            
+                            {/* Divider */}
+                            <div className="w-px h-12 sm:h-16 md:h-20 bg-[#04362c]"></div>
+                            
+                            {/* Total Saved */}
+                            <div className="flex-1">
+                                <div className="text-sm sm:text-base md:text-lg text-[#04362c] mb-1 sm:mb-2">Total Saved</div>
+                                <div className="text-lg sm:text-xl md:text-2xl font-bold text-[#04362c] break-words">
+                                    {formatCurrency(totalSaved)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right side - Liquid Progress Indicator */}
+                    <div className="flex-shrink-0 flex items-center justify-center w-full lg:w-auto mt-4 lg:mt-0">
+                        <div className="relative w-full max-w-[280px] sm:max-w-[320px] md:max-w-[360px] aspect-square" style={{ marginTop: "20px" }} >
+                            <svg
+                                ref={svgRef}
+                                width="100%"
+                                height="100%"
+                                viewBox="0 0 374 374"
+                                preserveAspectRatio="xMidYMid meet"
+                            >
+                                {/* Background circle */}
+                                <circle
+                                    cx="187"
+                                    cy="187"
+                                    r="180"
+                                    fill="#86efac"
+                                />
+                                
+                                {/* Liquid fill with wave */}
+                                <defs>
+                                    <clipPath id="liquidClipGoals">
+                                        <circle cx="187" cy="187" r="178" />
+                                    </clipPath>
+                                </defs>
+                                
+                                <g clipPath="url(#liquidClipGoals)">
+                                    <path
+                                        d={createWavePath()}
+                                        fill="#04362c"
+                                        opacity="0.9"
+                                    />
+                                    
+                                    {/* Bubbles */}
+                                    {bubbles.map((bubble, index) => (
+                                        <circle
+                                            key={index}
+                                            cx={bubble.x}
+                                            cy={bubble.y}
+                                            r={bubble.size}
+                                            fill="white"
+                                            opacity="0.3"
+                                        />
+                                    ))}
+                                </g>
+                                
+                                {/* Outer frame - same color as liquid */}
+                                <circle
+                                    cx="187"
+                                    cy="187"
+                                    r="180"
+                                    fill="none"
+                                    stroke="#04362c"
+                                    strokeWidth="7"
+                                />
+                            </svg>
+                            
+                            {/* Center content */}
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center px-2">
+                                    {displayPercentage}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* AI Insights Section - Right Side */}
+            <div className="bg-white rounded-xl p-4 sm:p-6 md:p-8 shadow-xl hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 relative overflow-hidden">
+                {/* Green gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-green-100 opacity-50"></div>
+                
+                <div className="relative z-10">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#04362c] mb-4 md:mb-6">AI Insights</h2>
+                    <div className="space-y-3 sm:space-y-4">
+                        {(() => {
+                            const insights = [];
+                            
+                            // Warning if nearing target (>80% saved)
+                            if (savedPercentage >= 80 && savedPercentage < 100) {
+                                insights.push({
+                                    type: 'warning',
+                                    icon: AlertTriangle,
+                                    title: 'Approaching Goal Target',
+                                    message: `You've saved ${Math.round(savedPercentage)}% of your target. You're ${formatCurrency(totalTarget - totalSaved)} away from reaching your goals.`,
+                                    suggestion: 'Consider increasing your monthly savings to reach your goals faster.'
+                                });
+                            }
+                            
+                            // Critical warning if exceeded target
+                            if (savedPercentage >= 100) {
+                                insights.push({
+                                    type: 'critical',
+                                    icon: CheckCircle2,
+                                    title: 'Goal Achieved!',
+                                    message: `Congratulations! You've exceeded your target by ${formatCurrency(totalSaved - totalTarget)}. Consider setting new goals to continue your financial journey.`,
+                                    suggestion: 'Review your goals and set new targets to maintain momentum.'
+                                });
+                            }
+                            
+                            // Future insights based on savings patterns
+                            if (savedPercentage < 80 && totalTarget > 0) {
+                                const remaining = totalTarget - totalSaved;
+                                const avgMonthlySavings = totalSaved > 0 ? totalSaved / 3 : 0; // Assuming 3 months of data
+                                
+                                if (avgMonthlySavings > 0) {
+                                    const monthsToGoal = remaining / avgMonthlySavings;
+                                    if (monthsToGoal > 12) {
+                                        insights.push({
+                                            type: 'future',
+                                            icon: TrendingDown,
+                                            title: 'Long-Term Goal',
+                                            message: `At your current savings rate, it will take approximately ${Math.ceil(monthsToGoal)} months to reach your target.`,
+                                            suggestion: 'Consider increasing your monthly savings or adjusting your target date to stay motivated.'
+                                        });
+                                    } else if (monthsToGoal > 6) {
+                                        insights.push({
+                                            type: 'future',
+                                            icon: TrendingUp,
+                                            title: 'On Track',
+                                            message: `You're making good progress! At your current rate, you'll reach your goal in approximately ${Math.ceil(monthsToGoal)} months.`,
+                                            suggestion: 'Keep up the excellent savings habits!'
+                                        });
+                                    } else {
+                                        insights.push({
+                                            type: 'positive',
+                                            icon: CheckCircle2,
+                                            showIconOnly: true,
+                                            title: 'On Track',
+                                            message: `Great job! You're currently at ${Math.round(savedPercentage)}% of your goal and projected to reach it soon.`,
+                                            suggestion: 'Continue monitoring your progress to maintain this healthy savings rate.'
+                                        });
+                                    }
+                                } else {
+                                    insights.push({
+                                        type: 'positive',
+                                        icon: CheckCircle2,
+                                        showIconOnly: true,
+                                        title: 'On Track',
+                                        message: `Great job! You're currently at ${Math.round(savedPercentage)}% of your goal and projected to stay on track.`,
+                                        suggestion: 'Continue monitoring your progress to maintain this healthy savings rate.'
+                                    });
+                                }
+                            }
+                            
+                            // If no goals set - ALWAYS show this if no insights
+                            if (insights.length === 0 || totalTarget === 0) {
+                                insights.push({
+                                    type: 'info',
+                                    icon: Lightbulb,
+                                    title: 'Get Started',
+                                    message: 'Create your first financial goal to start tracking your savings and receive personalized insights.',
+                                    suggestion: 'Click "Add New Categories" to set up your financial goals.'
+                                });
+                            }
+                            
+                            return insights.length > 0 ? (
+                                insights.map((insight, index) => {
+                                    const IconComponent = insight.icon;
+                                    return (
+                                        <div key={index} className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-[#04362c]/10">
+                                            {insight.showIconOnly ? (
+                                                <div className="mb-2">
+                                                    <h3 className="font-bold text-[#04362c] mb-2 text-base sm:text-lg flex items-center gap-2">
+                                                        <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-[#04362c]" />
+                                                        {insight.title}
+                                                    </h3>
+                                                    <p className="text-sm sm:text-base text-gray-700 mb-2">{insight.message}</p>
+                                                    <p className="text-xs sm:text-sm text-gray-600 italic">{insight.suggestion}</p>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-start gap-3 mb-2">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+                                                            <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-[#04362c]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h3 className="font-bold text-[#04362c] mb-2 text-base sm:text-lg">{insight.title}</h3>
+                                                        <p className="text-sm sm:text-base text-gray-700 mb-2">{insight.message}</p>
+                                                        <p className="text-xs sm:text-sm text-gray-600 italic">{insight.suggestion}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-[#04362c]/10">
+                                    <div className="mb-2">
+                                        <h3 className="font-bold text-[#04362c] mb-2 text-base sm:text-lg flex items-center gap-2">
+                                            <Lightbulb className="h-5 w-5 sm:h-6 sm:w-6 text-[#04362c]" />
+                                            Get Started
+                                        </h3>
+                                        <p className="text-sm sm:text-base text-gray-700 mb-2">Create your first financial goal to start tracking your savings and receive personalized insights.</p>
+                                        <p className="text-xs sm:text-sm text-gray-600 italic">Click "Add New Categories" to set up your financial goals.</p>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </div>
+                    
+                    {/* Usage Rate and Allotment Rate */}
+                    {totalTarget > 0 && (
+                        <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
+                            {/* Savings Rate */}
+                            <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-black">{Math.round(savedPercentage)}%</div>
+                                    {(() => {
+                                        const savingsRate = Math.round(savedPercentage);
+                                        // Show green up arrow when increasing or at 100% (same green as target rate)
+                                        if (savingsRate === 100 || savedTrend === 'up') {
+                                            return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />;
+                                        } else if (savedTrend === 'down') {
+                                            return <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-red-600" />;
+                                        } else {
+                                            // Show green up arrow for neutral/stable state (same as target rate)
+                                            return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />;
+                                        }
+                                    })()}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-500">Savings Rate</div>
+                            </div>
+                            
+                            {/* Target Rate */}
+                            <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-black">100%</div>
+                                    {(() => {
+                                        // Show green up arrow when at 100% or when increasing
+                                        if (targetTrend === 'up') {
+                                            return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />;
+                                        } else if (targetTrend === 'down') {
+                                            return <TrendingDown className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-red-600" />;
+                                        } else {
+                                            // Default to green up when at 100% (fully targeted is good)
+                                            return <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-green-600" />;
+                                        }
+                                    })()}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-500">Target Rate</div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+

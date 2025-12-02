@@ -1,0 +1,28 @@
+.shiny-text {
+  color: rgb(224, 251, 255); /* Using your current title color */
+  background: linear-gradient(
+    120deg,
+    rgb(4, 54, 44, 1.0) 43%,
+    rgb(210, 234, 238, 0.6) 50%,
+    rgb(4, 54, 44, 1.0) 57%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: -100%;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none;
+}

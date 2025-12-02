@@ -1,0 +1,195 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-family-sans: "Roboto", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: #9eb8b9;
+  --foreground: black;
+  --secondary: #e4f0f0;
+  --primary: #6f948d;
+  --primary-foreground: #586c75;
+  --card: #879ca1;
+  --card-foreground: oklch(0.145 0 0);
+  --button-background: #586c75;
+  --button-foreground: white;
+  --popover: oklch(0.97 0 0);;
+  --popover-foreground: oklch(0.205 0 0);   
+  --secondary-foreground: #d2eaee;
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: lime;
+  --accent-foreground: #db3700;
+  --destructive: red;
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  /* Add these font family variables */
+  --font-roboto: 'roboto', sans-serif;
+
+}
+
+@font-face {
+  font-family: 'roboto';
+  src: url('./fonts/Roboto-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Configure base font families */
+@layer base {
+  html {
+    font-family: var(--font-roboto);
+  }
+  
+}
+
+/* Dot Grid Styles */
+.dot-grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.dot-grid__wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.dot-grid__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Blob animation + helpers */
+@layer utilities {
+  .animate-blob {
+    animation: blob 14s infinite;
+  }
+
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  /* Hide scrollbar while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
+
+  @keyframes blob {
+    0% {
+      transform: translate(0px, 0px) scale(1);
+    }
+
+    33% {
+      transform: translate(25px, -35px) scale(1.05);
+    }
+
+    66% {
+      transform: translate(-15px, 20px) scale(0.98);
+    }
+
+    100% {
+      transform: translate(0px, 0px) scale(1);
+    }
+  }
+
+  /* Global Loader Animation */
+  .global-loader {
+    width: 124px;
+    height: 24px;
+    -webkit-mask: 
+      conic-gradient(from 135deg at top   ,#0000,#000 .5deg 90deg,#0000 90.5deg) 0 0   ,
+      conic-gradient(from -45deg at bottom,#0000,#000 .5deg 90deg,#0000 90.5deg) 0 100%;
+    -webkit-mask-size:25% 50%;
+    -webkit-mask-repeat:repeat-x;
+    background: linear-gradient(#0DAD8D 0 0) left/0% 100% no-repeat #d2eaee;
+    animation: global-loader 2s infinite linear;
+  }
+
+  @keyframes global-loader {
+    100% {background-size: 100% 100%}
+  }
+
+  /* Loading animation for skeletons */
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Slide in animation for notifications */
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+}
